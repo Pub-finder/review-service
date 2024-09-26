@@ -13,6 +13,8 @@ public class MapperImpl implements Mapper {
         .id(entity.getId())
         .pubId(entity.getPub().getId())
         .reviewDate(entity.getReviewDate())
+        .userId(entity.getReviewer().getId())
+        .username(entity.getReviewer().getUsername())
         .review(entity.getReview())
         .rating(entity.getRating())
         .toilets(entity.getToilets())
@@ -25,7 +27,6 @@ public class MapperImpl implements Mapper {
   @Override
   public Review dtoToEntity(ReviewDto dto) {
     return Review.builder()
-        .id(dto.getId())
         .review(dto.getReview())
         .rating(dto.getRating())
         .toilets(dto.getToilets())
@@ -39,6 +40,8 @@ public class MapperImpl implements Mapper {
     return VisitedDto.builder()
             .id(entity.getId())
             .visitedDate(entity.getVisitedDate())
+            .pubId(entity.getPub().getId())
+            .visitorId(entity.getVisitor().getId())
             .build();
   }
 }

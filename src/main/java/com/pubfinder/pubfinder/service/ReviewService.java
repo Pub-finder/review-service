@@ -55,12 +55,16 @@ public class ReviewService {
     Optional<User> user = userRepository.findById(userId);
     if (user.isEmpty()) {
       // TODO: Make call to check if the user exist in the user db
+      // User u = User.builder().id(userId).username(fetch.username).build();
+      // User user = userRepository.save(u)
       throw new ResourceNotFoundException("User: " + userId + " does not exist");
     }
 
     Optional<Pub> pub = pubRepository.findById(pubId);
     if (pub.isEmpty()) {
       // TODO: Make call to check if the pub exist in the pub db
+      // Pub u = User.builder().id(pubId).build();
+      // Pub pub = pubRepository.save(u)
       throw new ResourceNotFoundException("Pub: " + pubId + " does not exist");
     }
 
@@ -130,6 +134,7 @@ public class ReviewService {
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   private Pub getPub(UUID id) throws ResourceNotFoundException {
     return pubRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Pub with id " + id + " was not found"));

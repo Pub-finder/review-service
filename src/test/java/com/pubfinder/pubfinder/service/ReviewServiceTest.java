@@ -1,5 +1,6 @@
 package com.pubfinder.pubfinder.service;
 
+import static com.pubfinder.pubfinder.util.TestUtil.generateListOfMockReviews;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -192,19 +193,14 @@ public class ReviewServiceTest {
   public void getPubReviewsTest() throws BadRequestException, ResourceNotFoundException {
     Pub pub = TestUtil.generateMockPub();
 
-    List<Review> reviews = new ArrayList<>();
-
-    for (int i = 0;i<10;i++) {
-      Review review = TestUtil.generateMockReview(TestUtil.generateMockUser(), pub);
-      reviews.add(review);
-    }
+    List<Review> reviews = generateListOfMockReviews();
 
     when(pubRepository.findById(pub.getId())).thenReturn(Optional.of(pub));
     when(reviewRepository.findAllByPub(pub)).thenReturn(reviews);
 
     List<ReviewDto> reviewDtos = reviewService.getPubReviews(pub.getId());
 
-    assertEquals(reviewDtos.size(), 10);
+    assertEquals(reviewDtos.size(), reviews.size());
   }
 
   @Test

@@ -1,6 +1,8 @@
 package com.pubfinder.pubfinder.dto;
 
 import com.pubfinder.pubfinder.models.enums.Volume;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -12,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ReviewDto {
+public class ReviewDto implements Serializable {
 
   private UUID id;
   private UUID pubId;

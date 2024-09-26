@@ -4,6 +4,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -16,6 +17,8 @@ import com.pubfinder.pubfinder.exception.ResourceNotFoundException;
 import com.pubfinder.pubfinder.exception.ReviewAlreadyExistsException;
 import com.pubfinder.pubfinder.service.ReviewService;
 import com.pubfinder.pubfinder.util.TestUtil;
+
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +52,7 @@ public class ReviewControllerTest {
   public void saveTest() throws Exception {
     when(reviewService.save(any(), any(), any())).thenReturn(reviewDTO);
 
-    mockMvc.perform(post("/review/save/{pubId}/{username}", UUID.randomUUID(), "username")
+    mockMvc.perform(post("/review/save/{pubId}/{userId}", UUID.randomUUID(), UUID.randomUUID())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(reviewDTO)))
         .andExpect(status().isCreated()).andDo(print());
@@ -59,7 +62,7 @@ public class ReviewControllerTest {
   public void saveTest_NotFound() throws Exception {
     when(reviewService.save(any(), any(), any())).thenThrow(ResourceNotFoundException.class);
 
-    mockMvc.perform(post("/review/save/{pubId}/{username}", UUID.randomUUID(), "username")
+    mockMvc.perform(post("/review/save/{pubId}/{userId}", UUID.randomUUID(), UUID.randomUUID())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(reviewDTO)))
         .andExpect(status().isNotFound()).andDo(print());
@@ -70,7 +73,7 @@ public class ReviewControllerTest {
     when(reviewService.save(any(), any(), any())).thenThrow(
         ReviewAlreadyExistsException.class);
 
-    mockMvc.perform(post("/review/save/{pubId}/{username}", UUID.randomUUID(), "username")
+    mockMvc.perform(post("/review/save/{pubId}/{userId}", UUID.randomUUID(), UUID.randomUUID())
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(reviewDTO)))
         .andExpect(status().isConflict());
@@ -109,6 +112,42 @@ public class ReviewControllerTest {
     mockMvc.perform(put("/pub/editPub")
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  public void getPubRatingTest() throws Exception {
+    when(reviewService.getPubRating(any())).thenReturn(TestUtil.generateMockRatingDto());
+
+    mockMvc.perform(get("/review/rating/{id}", UUID.randomUUID())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+  }
+
+  @Test
+  public void getPubRatingTest_NotFound() throws Exception {
+    when(reviewService.getPubRating(any())).thenThrow(ResourceNotFoundException.class);
+
+    mockMvc.perform(get("/review/rating/{id}", UUID.randomUUID())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+  }
+
+  @Test
+  public void getReviewsTest() throws Exception {
+    when(reviewService.getPubReviews(any())).thenReturn(List.of(TestUtil.generateMockReviewDTO()));
+
+    mockMvc.perform(get("/review/reviews/{id}", UUID.randomUUID())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+  }
+
+  @Test
+  public void getReviewsTest_NotFound() throws Exception {
+    when(reviewService.getPubReviews(any())).thenThrow(ResourceNotFoundException.class);
+
+    mockMvc.perform(get("/review/reviews/{id}", UUID.randomUUID())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
   }
 
   ReviewDto reviewDTO = TestUtil.generateMockReviewDTO();

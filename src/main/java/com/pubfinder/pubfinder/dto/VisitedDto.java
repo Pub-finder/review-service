@@ -1,5 +1,6 @@
 package com.pubfinder.pubfinder.dto;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -11,7 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class VisitedDto {
+public class VisitedDto implements Serializable {
   private UUID id;
   private LocalDateTime visitedDate;
+  private UUID pubId;
+  private UUID visitorId;
 }

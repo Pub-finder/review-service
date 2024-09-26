@@ -1,6 +1,9 @@
 package com.pubfinder.pubfinder.util;
 
+import com.pubfinder.pubfinder.dto.RatingDto;
 import com.pubfinder.pubfinder.dto.ReviewDto;
+import com.pubfinder.pubfinder.dto.VisitedDto;
+import com.pubfinder.pubfinder.mapper.Mapper;
 import com.pubfinder.pubfinder.models.Pub;
 import com.pubfinder.pubfinder.models.Review;
 import com.pubfinder.pubfinder.models.User;
@@ -58,11 +61,11 @@ public class TestUtil {
         .build();
   }
 
-  public static Visited generateMockVisited() {
+  public static Visited generateMockVisited(User visitor) {
     return Visited.builder()
         .visitedDate(LocalDateTime.now())
         .pub(TestUtil.generateMockPub())
-        .visitor(TestUtil.generateMockUser())
+        .visitor(visitor)
         .build();
   }
 
@@ -83,4 +86,46 @@ public class TestUtil {
     return reviews;
   }
 
+  public static RatingDto generateMockRatingDto() {
+    return  RatingDto.builder()
+            .pubId(UUID.randomUUID())
+            .rating(5)
+            .toiletRating(5)
+            .serviceRating(5)
+            .volume(Volume.AVERAGE)
+            .build();
+  }
+
+  public static List<Review> generateListOfMockReviews(Pub pub) {
+    List<Review> reviews = new ArrayList<>();
+
+    for (int i = 0;i<10;i++) {
+      Review review = TestUtil.generateMockReview(TestUtil.generateMockUser(), pub);
+      reviews.add(review);
+    }
+
+    return reviews;
+  }
+
+  public static List<Visited> generateListOfMockVisits(User user) {
+    List<Visited> visits = new ArrayList<>();
+
+    for (int i = 0;i<10;i++) {
+      Visited visit = TestUtil.generateMockVisited(TestUtil.generateMockUser());
+      visits.add(visit);
+    }
+
+    return visits;
+  }
+
+  public static List<VisitedDto> generateListOfMockVisitedDtos(User user) {
+    List<VisitedDto> visits = new ArrayList<>();
+
+    for (int i = 0;i<10;i++) {
+      Visited visit = TestUtil.generateMockVisited(TestUtil.generateMockUser());
+      visits.add(Mapper.INSTANCE.entityToDto(visit));
+    }
+
+    return visits;
+  }
 }

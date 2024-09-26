@@ -109,5 +109,37 @@ public class VisitedRepositoryTest {
     assertEquals(savedUVP, editedUVP);
   }
 
+  @Test
+  public void findAllByVisitorTest() {
+    User user = userRepository.save(uvp.getVisitor());
+    Pub pub1 = pubRepository.save(uvp.getPub());
+    Pub pub2 = pubRepository.save(uvp.getPub());
+    Pub pub3 = pubRepository.save(uvp.getPub());
+    Visited uvp1 = Visited.builder()
+            .visitor(user)
+            .pub(pub1)
+            .visitedDate(LocalDateTime.now())
+            .build();
+
+    Visited uvp2 = Visited.builder()
+            .visitor(user)
+            .pub(pub2)
+            .visitedDate(LocalDateTime.now())
+            .build();
+
+    Visited uvp3 = Visited.builder()
+            .visitor(user)
+            .pub(pub3)
+            .visitedDate(LocalDateTime.now())
+            .build();
+
+    visitedRepository.saveAll(Arrays.asList(uvp1, uvp2, uvp3));
+
+    List<Visited> uvps1 = visitedRepository.findAllByVisitor(user);
+    assertEquals(3, uvps1.size());
+  }
+
+
+
   private final Visited uvp = TestUtil.generateUserVisitedPub();
 }
