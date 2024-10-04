@@ -33,3 +33,6 @@ spring:
       spec: maximumSize=100000,expireAfterAccess=3600s
 security:
   cors-url: ${CORS_URL:http://localhost:3000}
+
+server:
+  port: 8083
