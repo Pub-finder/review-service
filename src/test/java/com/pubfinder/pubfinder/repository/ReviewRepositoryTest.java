@@ -90,6 +90,22 @@ public class ReviewRepositoryTest {
     assertEquals(result.size(), 3);
   }
 
+  @Test
+  public void findAllReviewsForUserTest() {
+    User user = userRepository.save(TestUtil.generateMockUser());
+    Pub pub = pubRepository.save(TestUtil.generateMockPub());
+    Review review1 = TestUtil.generateMockReview(user, pub);
+    Review review2 = TestUtil.generateMockReview(user, pub);
+    Review review3 = TestUtil.generateMockReview(user, pub);
+
+    reviewRepository.save(review1);
+    reviewRepository.save(review2);
+    reviewRepository.save(review3);
+
+    List<Review> result = reviewRepository.findAllByReviewer(user);
+    assertEquals(result.size(), 3);
+  }
+
   private Review saveReview() {
     User user = userRepository.save(TestUtil.generateMockUser());
     Pub pub = pubRepository.save(TestUtil.generateMockPub());

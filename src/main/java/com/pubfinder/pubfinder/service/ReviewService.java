@@ -126,8 +126,20 @@ public class ReviewService {
 
   @Cacheable(value = "getPubReviews")
   public List<ReviewDto> getPubReviews(UUID id)
-          throws BadRequestException, ResourceNotFoundException {
+          throws ResourceNotFoundException {
     return reviewRepository.findAllByPub(getPub(id))
+            .stream()
+            .map(Mapper.INSTANCE::entityToDto)
+            .toList();
+  }
+
+  @Cacheable(value = "getUserReviews")
+  public List<ReviewDto> getUserReviews(UUID id)
+          throws ResourceNotFoundException {
+    User user = userRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " was not found"));
+
+    return reviewRepository.findAllByReviewer(user)
             .stream()
             .map(Mapper.INSTANCE::entityToDto)
             .toList();

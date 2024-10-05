@@ -70,7 +70,7 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void saveTest_UserNotFound() throws ResourceNotFoundException {
+  public void saveTest_UserNotFound() {
     User user = TestUtil.generateMockUser();
     Pub pub = TestUtil.generateMockPub();
     Review review = TestUtil.generateMockReview(user, pub);
@@ -79,7 +79,7 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void saveTest_PubNotFound() throws ResourceNotFoundException {
+  public void saveTest_PubNotFound() {
     User user = TestUtil.generateMockUser();
     Pub pub = TestUtil.generateMockPub();
     Review review = TestUtil.generateMockReview(user, pub);
@@ -88,7 +88,7 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void saveReviewTest_AlreadyExists() throws ResourceNotFoundException {
+  public void saveReviewTest_AlreadyExists() {
     User user = TestUtil.generateMockUser();
     Pub pub = TestUtil.generateMockPub();
 
@@ -183,14 +183,14 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void getPubRatingTest_NotFound() throws BadRequestException, ResourceNotFoundException {
+  public void getPubRatingTest_NotFound() {
     Pub pub = TestUtil.generateMockPub();
     when(pubRepository.findById(pub.getId())).thenReturn(Optional.empty());
     assertThrows(ResourceNotFoundException.class, () -> reviewService.getPubRating(pub.getId()));
   }
 
   @Test
-  public void getPubReviewsTest() throws BadRequestException, ResourceNotFoundException {
+  public void getPubReviewsTest() throws ResourceNotFoundException {
     Pub pub = TestUtil.generateMockPub();
 
     List<Review> reviews = generateListOfMockReviews();
@@ -204,9 +204,30 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void getPubReviewsTest_NotFound() throws BadRequestException, ResourceNotFoundException {
+  public void getPubReviewsTest_NotFound() {
     Pub pub = TestUtil.generateMockPub();
     when(pubRepository.findById(pub.getId())).thenReturn(Optional.empty());
     assertThrows(ResourceNotFoundException.class, () -> reviewService.getPubReviews(pub.getId()));
+  }
+
+  @Test
+  public void getUserReviewsTest() throws ResourceNotFoundException {
+    User user = TestUtil.generateMockUser();
+
+    List<Review> reviews = generateListOfMockReviews();
+
+    when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+    when(reviewRepository.findAllByReviewer(user)).thenReturn(reviews);
+
+    List<ReviewDto> reviewDtos = reviewService.getUserReviews(user.getId());
+
+    assertEquals(reviewDtos.size(), reviews.size());
+  }
+
+  @Test
+  public void getUserReviewsTest_NotFound() {
+    User user = TestUtil.generateMockUser();
+    when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
+    assertThrows(ResourceNotFoundException.class, () -> reviewService.getUserReviews(user.getId()));
   }
 }

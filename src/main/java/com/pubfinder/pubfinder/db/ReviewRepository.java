@@ -16,4 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
   void deleteAllByReviewer(User user);
 
   List<Review> findAllByPub(Pub pub);
+
+  List<Review> findAllByReviewer(User user);
 }

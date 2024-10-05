@@ -133,20 +133,38 @@ public class ReviewControllerTest {
   }
 
   @Test
-  public void getReviewsTest() throws Exception {
+  public void getPubReviewsTest() throws Exception {
     when(reviewService.getPubReviews(any())).thenReturn(List.of(TestUtil.generateMockReviewDTO()));
 
-    mockMvc.perform(get("/review/reviews/{id}", UUID.randomUUID())
+    mockMvc.perform(get("/review/reviews/pub/{id}", UUID.randomUUID())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk());
   }
 
   @Test
-  public void getReviewsTest_NotFound() throws Exception {
+  public void getPubReviewsTest_NotFound() throws Exception {
     when(reviewService.getPubReviews(any())).thenThrow(ResourceNotFoundException.class);
 
-    mockMvc.perform(get("/review/reviews/{id}", UUID.randomUUID())
+    mockMvc.perform(get("/review/reviews/pub/{id}", UUID.randomUUID())
             .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound());
+  }
+
+  @Test
+  public void getUserReviewsTest() throws Exception {
+    when(reviewService.getUserReviews(any())).thenReturn(List.of(TestUtil.generateMockReviewDTO()));
+
+    mockMvc.perform(get("/review/reviews/user/{id}", UUID.randomUUID())
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+  }
+
+  @Test
+  public void getUserReviews_NotFound() throws Exception {
+    when(reviewService.getUserReviews(any())).thenThrow(ResourceNotFoundException.class);
+
+    mockMvc.perform(get("/review/reviews/user/{id}", UUID.randomUUID())
+                    .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound());
   }
 

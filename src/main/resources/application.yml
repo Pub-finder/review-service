@@ -28,6 +28,7 @@ spring:
     cache-names:
       - getPubRating
       - getPubReviews
+      - getUserReviews
       - getVisitedPubs
     caffeine:
       spec: maximumSize=100000,expireAfterAccess=3600s
