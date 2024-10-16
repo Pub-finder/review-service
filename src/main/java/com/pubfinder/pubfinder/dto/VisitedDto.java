@@ -17,4 +17,5 @@ public class VisitedDto implements Serializable {
   private LocalDateTime visitedDate;
   private UUID pubId;
   private UUID visitorId;
+  private String username;
 }

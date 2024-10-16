@@ -1,5 +1,6 @@
 package com.pubfinder.pubfinder.controller;
 
+import com.pubfinder.pubfinder.dto.VisitDto;
 import com.pubfinder.pubfinder.dto.VisitedDto;
 import com.pubfinder.pubfinder.exception.ResourceNotFoundException;
 import com.pubfinder.pubfinder.service.VisitedService;
@@ -18,16 +19,15 @@ public class VisitedController {
   @Autowired
   private VisitedService visitedService;
 
-  @PostMapping("/save/{pubId}/{userId}")
-  public ResponseEntity<VisitedDto> save(@PathVariable("pubId") UUID pubId,
-      @PathVariable("userId") UUID userId) throws ResourceNotFoundException {
-    visitedService.save(pubId, userId);
+  @PostMapping("/save")
+  public ResponseEntity<VisitedDto> save(@RequestBody VisitDto visit) throws ResourceNotFoundException {
+    visitedService.save(visit);
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
-  @DeleteMapping("/delete/{id}")
-  public ResponseEntity<Void> delete(@PathVariable("id") UUID id) throws ResourceNotFoundException {
-    visitedService.delete(id);
+  @DeleteMapping("/delete/{userId}/{pubId}")
+  public ResponseEntity<Void> delete(@PathVariable("userId") UUID userId, @PathVariable("pubId") UUID pubId) throws ResourceNotFoundException {
+    visitedService.delete(userId, pubId);
     return ResponseEntity.noContent().build();
   }
 

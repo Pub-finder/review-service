@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pubfinder.pubfinder.dto.VisitDto;
 import com.pubfinder.pubfinder.dto.VisitedDto;
 import com.pubfinder.pubfinder.exception.ResourceNotFoundException;
 import com.pubfinder.pubfinder.service.VisitedService;
@@ -35,20 +37,25 @@ public class VisitedControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Test
     public void saveTest() throws Exception {
-      doNothing().when(visitedService).save(any(), any());
+        VisitDto visitDto = TestUtil.generateVisitDto();
+        doNothing().when(visitedService).save(visitDto);
 
-        mockMvc.perform(post("/visited/save/{pubId}/{userId}", UUID.randomUUID(), UUID.randomUUID())
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/visited/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(visitDto)))
                 .andExpect(status().isCreated());
     }
 
     @Test
     public void deleteTest() throws Exception {
-        doNothing().when(visitedService).delete(any());
+        doNothing().when(visitedService).delete(any(), any());
 
-        mockMvc.perform(delete("/visited/delete/{id}", UUID.randomUUID())
+        mockMvc.perform(delete("/visited/delete/{userId}/{pubId}", UUID.randomUUID(), UUID.randomUUID())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }

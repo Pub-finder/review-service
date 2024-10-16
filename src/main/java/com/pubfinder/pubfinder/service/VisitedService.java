@@ -3,6 +3,7 @@ package com.pubfinder.pubfinder.service;
 import com.pubfinder.pubfinder.db.PubRepository;
 import com.pubfinder.pubfinder.db.UserRepository;
 import com.pubfinder.pubfinder.db.VisitedRepository;
+import com.pubfinder.pubfinder.dto.VisitDto;
 import com.pubfinder.pubfinder.dto.VisitedDto;
 import com.pubfinder.pubfinder.exception.ResourceNotFoundException;
 import com.pubfinder.pubfinder.mapper.Mapper;
@@ -35,30 +36,23 @@ public class VisitedService {
   /**
    * Save visit.
    *
-   * @param pubId    the pub id
-   * @param userId   the visitors id
-   * @throws ResourceNotFoundException user or pub not found exception
+   * @param visit    the visit containg the visitors userId and username and the pubs Id
    */
-  public void save(UUID pubId, UUID userId) throws ResourceNotFoundException {
-    Optional<User> user = userRepository.findById(userId);
-    if (user.isEmpty()) {
-      // TODO: Make call to check if the user exist in the user db
-      throw new ResourceNotFoundException("User: " + userId + " does not exist");
-    }
+  public void save(VisitDto visit) {
+    User user = userRepository.findById(visit.getUserId())
+            .orElseGet(() -> userRepository.save(User.builder().id(visit.getUserId()).username(visit.getUsername()).build()));
 
-    Optional<Pub> pub = pubRepository.findById(pubId);
-    if (pub.isEmpty()) {
-      // TODO: Make call to check if the pub exist in the pub db
-      throw new ResourceNotFoundException("Pub: " + pubId + " does not exist");
-    }
+    Pub pub = pubRepository.findById(visit.getPubId())
+            .orElseGet(() -> pubRepository.save(Pub.builder().id(visit.getPubId()).build()));
 
-    Optional<Visited> uvp = visitedRepository.findByPubAndVisitor(pub.get(), user.get());
+    Optional<Visited> uvp = visitedRepository.findByPubAndVisitor(pub, user);
+
     Visited visited;
     if (uvp.isPresent()) {
       visited = uvp.get();
       visited.setVisitedDate(LocalDateTime.now());
     } else {
-      visited = Visited.builder().visitor(user.get()).pub(pub.get()).visitedDate(LocalDateTime.now()).build();
+      visited = Visited.builder().visitor(user).pub(pub).visitedDate(LocalDateTime.now()).build();
     }
     visitedRepository.save(visited);
   }
@@ -66,13 +60,20 @@ public class VisitedService {
   /**
    * Delete visit.
    *
-   * @param id the id
+   * @param userId the visitors id
+   * @param pubId the pubs id
    * @throws ResourceNotFoundException the resource not found exception
    */
-  public void delete(UUID id) throws ResourceNotFoundException {
-    Visited visited = visitedRepository.findById(id).orElseThrow(
+  public void delete(UUID userId, UUID pubId) throws ResourceNotFoundException {
+    Pub pub = pubRepository.findById(pubId)
+            .orElseThrow(() -> new ResourceNotFoundException("Pub with id " + pubId + " was not found"));
+
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User with id " + userId + " was not found"));
+
+    Visited visited = visitedRepository.findByPubAndVisitor(pub, user).orElseThrow(
         () -> new ResourceNotFoundException(
-            "Visited with id: " + id + " not found"));
+            "Visited with userId: " + userId + " and pubId: " + pubId + " was not found"));
     visitedRepository.delete(visited);
   }
 

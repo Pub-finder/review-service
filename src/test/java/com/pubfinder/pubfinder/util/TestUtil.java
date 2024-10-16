@@ -2,6 +2,7 @@ package com.pubfinder.pubfinder.util;
 
 import com.pubfinder.pubfinder.dto.RatingDto;
 import com.pubfinder.pubfinder.dto.ReviewDto;
+import com.pubfinder.pubfinder.dto.VisitDto;
 import com.pubfinder.pubfinder.dto.VisitedDto;
 import com.pubfinder.pubfinder.mapper.Mapper;
 import com.pubfinder.pubfinder.models.Pub;
@@ -127,5 +128,13 @@ public class TestUtil {
     }
 
     return visits;
+  }
+
+  public static VisitDto generateVisitDto() {
+    return VisitDto.builder()
+            .username("username")
+            .userId(UUID.randomUUID())
+            .pubId(UUID.randomUUID())
+            .build();
   }
 }
