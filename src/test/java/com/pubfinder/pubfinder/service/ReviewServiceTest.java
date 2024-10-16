@@ -13,9 +13,9 @@ import com.pubfinder.pubfinder.db.PubRepository;
 import com.pubfinder.pubfinder.db.ReviewRepository;
 import com.pubfinder.pubfinder.db.UserRepository;
 import com.pubfinder.pubfinder.dto.RatingDto;
-import com.pubfinder.pubfinder.dto.ReviewDto;
+import com.pubfinder.pubfinder.dto.ReviewRequestDto;
+import com.pubfinder.pubfinder.dto.ReviewResponseDto;
 import com.pubfinder.pubfinder.exception.ResourceNotFoundException;
-import com.pubfinder.pubfinder.exception.ReviewAlreadyExistsException;
 import com.pubfinder.pubfinder.mapper.Mapper;
 import com.pubfinder.pubfinder.models.Pub;
 import com.pubfinder.pubfinder.models.Review;
@@ -51,54 +51,23 @@ public class ReviewServiceTest {
   public PubRepository pubRepository;
 
   @Test
-  public void saveTest()
-      throws ResourceNotFoundException, ReviewAlreadyExistsException, BadRequestException {
+  public void saveTest() {
     User user = TestUtil.generateMockUser();
     Pub pub = TestUtil.generateMockPub();
+    Review review = TestUtil.generateMockReview(user, pub);
 
     when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
     when(pubRepository.findById(pub.getId())).thenReturn(Optional.of(pub));
-
-    when(reviewRepository.findByPubAndReviewer(pub, user)).thenReturn(Optional.empty());
-    when(reviewRepository.findByPubAndReviewer(pub, user)).thenReturn(Optional.empty());
-    Review review = TestUtil.generateMockReview(user, pub);
+    when(reviewRepository.findByPubAndReviewer(pub, user)).thenReturn(Optional.of(review));
     when(reviewRepository.save(any())).thenReturn(review);
-    ReviewDto result = reviewService.save(review, pub.getId(), user.getId());
+
+    ReviewRequestDto reviewRequestDto = TestUtil.generateMockReviewRequestDTO();
+    reviewRequestDto.setUserId(user.getId());
+    reviewRequestDto.setPubId(pub.getId());
+    ReviewResponseDto result = reviewService.save(reviewRequestDto);
 
     assertEquals(result, Mapper.INSTANCE.entityToDto(review));
     verify(reviewRepository, times(1)).save(review);
-  }
-
-  @Test
-  public void saveTest_UserNotFound() {
-    User user = TestUtil.generateMockUser();
-    Pub pub = TestUtil.generateMockPub();
-    Review review = TestUtil.generateMockReview(user, pub);
-    assertThrows(ResourceNotFoundException.class,
-        () -> reviewService.save(review, pub.getId(), user.getId()));
-  }
-
-  @Test
-  public void saveTest_PubNotFound() {
-    User user = TestUtil.generateMockUser();
-    Pub pub = TestUtil.generateMockPub();
-    Review review = TestUtil.generateMockReview(user, pub);
-    assertThrows(ResourceNotFoundException.class,
-        () -> reviewService.save(review, pub.getId(), user.getId()));
-  }
-
-  @Test
-  public void saveReviewTest_AlreadyExists() {
-    User user = TestUtil.generateMockUser();
-    Pub pub = TestUtil.generateMockPub();
-
-    Review review = TestUtil.generateMockReview(user, pub);
-    when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-    when(pubRepository.findById(pub.getId())).thenReturn(Optional.of(pub));
-
-    when(reviewRepository.findByPubAndReviewer(pub, user)).thenReturn(Optional.of(review));
-    assertThrows(ReviewAlreadyExistsException.class,
-        () -> reviewService.save(review, pub.getId(), user.getId()));
   }
 
   @Test
@@ -120,29 +89,6 @@ public class ReviewServiceTest {
     Review review = TestUtil.generateMockReview(user, pub);
     when(reviewRepository.findById(any())).thenReturn(Optional.empty());
     assertThrows(ResourceNotFoundException.class, () -> reviewService.delete(review.getId()));
-  }
-
-  @Test
-  public void editTest() throws ResourceNotFoundException {
-    User user = TestUtil.generateMockUser();
-    Pub pub = TestUtil.generateMockPub();
-    Review review = TestUtil.generateMockReview(user, pub);
-    when(reviewRepository.findById(any())).thenReturn(Optional.of(review));
-    review.setVolume(Volume.LOUD);
-    when(reviewRepository.save(any())).thenReturn(review);
-
-    ReviewDto result = reviewService.edit(review);
-    assertEquals(Mapper.INSTANCE.entityToDto(review), result);
-    verify(reviewRepository, times(1)).save(review);
-  }
-
-  @Test
-  public void editReviewTest_NotFound() {
-    User user = TestUtil.generateMockUser();
-    Pub pub = TestUtil.generateMockPub();
-    Review review = TestUtil.generateMockReview(user, pub);
-    when(reviewRepository.findById(any())).thenReturn(Optional.empty());
-    assertThrows(ResourceNotFoundException.class, () -> reviewService.edit(review));
   }
 
   @Test
@@ -198,9 +144,9 @@ public class ReviewServiceTest {
     when(pubRepository.findById(pub.getId())).thenReturn(Optional.of(pub));
     when(reviewRepository.findAllByPub(pub)).thenReturn(reviews);
 
-    List<ReviewDto> reviewDtos = reviewService.getPubReviews(pub.getId());
+    List<ReviewResponseDto> reviewRequestDtos = reviewService.getPubReviews(pub.getId());
 
-    assertEquals(reviewDtos.size(), reviews.size());
+    assertEquals(reviewRequestDtos.size(), reviews.size());
   }
 
   @Test
@@ -219,9 +165,9 @@ public class ReviewServiceTest {
     when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
     when(reviewRepository.findAllByReviewer(user)).thenReturn(reviews);
 
-    List<ReviewDto> reviewDtos = reviewService.getUserReviews(user.getId());
+    List<ReviewResponseDto> reviewRequestDtos = reviewService.getUserReviews(user.getId());
 
-    assertEquals(reviewDtos.size(), reviews.size());
+    assertEquals(reviewRequestDtos.size(), reviews.size());
   }
 
   @Test

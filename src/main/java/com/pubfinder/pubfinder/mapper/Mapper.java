@@ -1,6 +1,7 @@
 package com.pubfinder.pubfinder.mapper;
 
-import com.pubfinder.pubfinder.dto.ReviewDto;
+import com.pubfinder.pubfinder.dto.ReviewRequestDto;
+import com.pubfinder.pubfinder.dto.ReviewResponseDto;
 import com.pubfinder.pubfinder.dto.VisitedDto;
 import com.pubfinder.pubfinder.models.Review;
 import com.pubfinder.pubfinder.models.Visited;
@@ -11,9 +12,7 @@ public interface Mapper {
 
   Mapper INSTANCE = Mappers.getMapper(Mapper.class);
 
-  ReviewDto entityToDto(Review entity);
-
-  Review dtoToEntity(ReviewDto dto);
+  ReviewResponseDto entityToDto(Review entity);
 
   VisitedDto entityToDto(Visited entity);
 }

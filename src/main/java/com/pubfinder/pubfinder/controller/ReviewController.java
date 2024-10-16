@@ -1,10 +1,9 @@
 package com.pubfinder.pubfinder.controller;
 
 import com.pubfinder.pubfinder.dto.RatingDto;
-import com.pubfinder.pubfinder.dto.ReviewDto;
+import com.pubfinder.pubfinder.dto.ReviewRequestDto;
+import com.pubfinder.pubfinder.dto.ReviewResponseDto;
 import com.pubfinder.pubfinder.exception.ResourceNotFoundException;
-import com.pubfinder.pubfinder.exception.ReviewAlreadyExistsException;
-import com.pubfinder.pubfinder.mapper.Mapper;
 import com.pubfinder.pubfinder.service.ReviewService;
 
 import java.util.List;
@@ -26,11 +25,10 @@ public class ReviewController {
     @Autowired
     private ReviewService reviewService;
 
-    @PostMapping("/save/{pubId}/{userId}")
-    public ResponseEntity<ReviewDto> save(@RequestBody ReviewDto review, @PathVariable("pubId") UUID pudId, @PathVariable("userId") UUID userId)
-            throws ReviewAlreadyExistsException, ResourceNotFoundException, BadRequestException {
+    @PostMapping("/save")
+    public ResponseEntity<ReviewResponseDto> save(@RequestBody ReviewRequestDto review) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(reviewService.save(Mapper.INSTANCE.dtoToEntity(review), pudId, userId));
+                .body(reviewService.save(review));
     }
 
     @DeleteMapping("/delete/{id}")
@@ -40,12 +38,6 @@ public class ReviewController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/edit")
-    public ResponseEntity<ReviewDto> edit(@RequestBody ReviewDto review)
-            throws ResourceNotFoundException {
-        return ResponseEntity.ok(reviewService.edit(Mapper.INSTANCE.dtoToEntity(review)));
-    }
-
     @GetMapping("/rating/{id}")
     public ResponseEntity<RatingDto> getPubRating(@PathVariable("id") UUID id)
             throws ResourceNotFoundException, BadRequestException {
@@ -53,12 +45,12 @@ public class ReviewController {
     }
 
     @GetMapping("/reviews/pub/{id}")
-    public ResponseEntity<List<ReviewDto>> getPubReviews(@PathVariable("id") UUID id) throws ResourceNotFoundException {
+    public ResponseEntity<List<ReviewResponseDto>> getPubReviews(@PathVariable("id") UUID id) throws ResourceNotFoundException {
         return ResponseEntity.ok(reviewService.getPubReviews(id));
     }
 
     @GetMapping("/reviews/user/{id}")
-    public ResponseEntity<List<ReviewDto>> getUserReviews(@PathVariable("id") UUID id) throws BadRequestException, ResourceNotFoundException {
+    public ResponseEntity<List<ReviewResponseDto>> getUserReviews(@PathVariable("id") UUID id) throws BadRequestException, ResourceNotFoundException {
         return ResponseEntity.ok(reviewService.getUserReviews(id));
     }
 }

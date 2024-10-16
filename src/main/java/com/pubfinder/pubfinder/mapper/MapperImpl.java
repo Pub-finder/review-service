@@ -1,6 +1,7 @@
 package com.pubfinder.pubfinder.mapper;
 
-import com.pubfinder.pubfinder.dto.ReviewDto;
+import com.pubfinder.pubfinder.dto.ReviewRequestDto;
+import com.pubfinder.pubfinder.dto.ReviewResponseDto;
 import com.pubfinder.pubfinder.dto.VisitedDto;
 import com.pubfinder.pubfinder.models.Review;
 import com.pubfinder.pubfinder.models.Visited;
@@ -8,8 +9,8 @@ import com.pubfinder.pubfinder.models.Visited;
 public class MapperImpl implements Mapper {
 
   @Override
-  public ReviewDto entityToDto(Review entity) {
-    return ReviewDto.builder()
+  public ReviewResponseDto entityToDto(Review entity) {
+    return ReviewResponseDto.builder()
         .id(entity.getId())
         .pubId(entity.getPub().getId())
         .reviewDate(entity.getReviewDate())
@@ -23,17 +24,6 @@ public class MapperImpl implements Mapper {
         .build();
   }
 
-
-  @Override
-  public Review dtoToEntity(ReviewDto dto) {
-    return Review.builder()
-        .review(dto.getReview())
-        .rating(dto.getRating())
-        .toilets(dto.getToilets())
-        .volume(dto.getVolume())
-        .service(dto.getService())
-        .build();
-  }
 
   @Override
   public VisitedDto entityToDto(Visited entity) {

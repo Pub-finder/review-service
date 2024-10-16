@@ -33,10 +33,4 @@ public class GlobalExceptionHandler {
     // Log exception Message
     return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
   }
-
-  @ExceptionHandler(value = ReviewAlreadyExistsException.class)
-  public ResponseEntity<String> handleAccessDeniedException(ReviewAlreadyExistsException ex) {
-    // Log exception Message
-    return new ResponseEntity<>("User has already made a review on this Pub", HttpStatus.CONFLICT);
-  }
 }

@@ -1,9 +1,6 @@
 package com.pubfinder.pubfinder.util;
 
-import com.pubfinder.pubfinder.dto.RatingDto;
-import com.pubfinder.pubfinder.dto.ReviewDto;
-import com.pubfinder.pubfinder.dto.VisitDto;
-import com.pubfinder.pubfinder.dto.VisitedDto;
+import com.pubfinder.pubfinder.dto.*;
 import com.pubfinder.pubfinder.mapper.Mapper;
 import com.pubfinder.pubfinder.models.Pub;
 import com.pubfinder.pubfinder.models.Review;
@@ -52,14 +49,24 @@ public class TestUtil {
         .build();
   }
 
-  public static ReviewDto generateMockReviewDTO() {
-    return ReviewDto.builder()
+  public static ReviewResponseDto generateMockReviewResponseDTO() {
+    return ReviewResponseDto.builder()
         .id(UUID.randomUUID())
         .pubId(UUID.randomUUID())
         .username("username")
         .reviewDate(LocalDateTime.now())
         .rating(5)
         .build();
+  }
+
+  public static ReviewRequestDto generateMockReviewRequestDTO() {
+    return ReviewRequestDto.builder()
+            .id(UUID.randomUUID())
+            .pubId(UUID.randomUUID())
+            .username("username")
+            .reviewDate(LocalDateTime.now())
+            .rating(5)
+            .build();
   }
 
   public static Visited generateMockVisited(User visitor) {
