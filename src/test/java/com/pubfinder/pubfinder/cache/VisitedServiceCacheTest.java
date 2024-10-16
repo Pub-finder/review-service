@@ -42,11 +42,10 @@ public class VisitedServiceCacheTest {
 
     @Test
     public void getVisitedPubsTest_CacheHit()
-            throws BadRequestException, ResourceNotFoundException {
+            throws ResourceNotFoundException {
         User user = TestUtil.generateMockUser();
 
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-
         when(visitedRepository.findAllByVisitor(user)).thenReturn(TestUtil.generateListOfMockVisits(user));
 
         List<VisitedDto> response1 = visitedService.getVisitedPubs(user.getId());

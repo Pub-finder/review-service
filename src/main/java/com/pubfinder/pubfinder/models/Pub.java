@@ -24,7 +24,6 @@ import lombok.NoArgsConstructor;
 public class Pub implements Serializable {
 
   @Id
-  @GeneratedValue
   @Column(unique = true, nullable = false)
   private UUID id;
 }
