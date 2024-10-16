@@ -52,7 +52,7 @@ public class ReviewControllerTest {
   public void saveTest() throws Exception {
     when(reviewService.save(any())).thenReturn(reviewResponseDto);
 
-    mockMvc.perform(post("/review/save/{pubId}/{userId}", UUID.randomUUID(), UUID.randomUUID())
+    mockMvc.perform(post("/review/save")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(reviewRequestDto)))
         .andExpect(status().isCreated()).andDo(print());
