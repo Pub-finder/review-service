@@ -150,14 +150,22 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void getPubReviewsTest_NotFound() {
+  public void getPubReviewsTest_NotFound() throws BadRequestException {
     Pub pub = TestUtil.generateMockPub();
     when(pubRepository.findById(pub.getId())).thenReturn(Optional.empty());
-    assertThrows(ResourceNotFoundException.class, () -> reviewService.getPubReviews(pub.getId()));
+
+    List<ReviewResponseDto> reviewRequestDtos = reviewService.getPubReviews(pub.getId());
+
+    assertEquals(reviewRequestDtos.size(), 0);
   }
 
   @Test
-  public void getUserReviewsTest() throws ResourceNotFoundException {
+  public void etPubReviewsTest_BadRequest() throws BadRequestException, ResourceNotFoundException {
+    assertThrows(BadRequestException.class, () -> reviewService.getPubReviews(null));
+  }
+
+  @Test
+  public void getUserReviewsTest() throws ResourceNotFoundException, BadRequestException {
     User user = TestUtil.generateMockUser();
 
     List<Review> reviews = generateListOfMockReviews();
@@ -171,9 +179,17 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void getUserReviewsTest_NotFound() {
+  public void getUserReviewsTest_NotFound() throws BadRequestException, ResourceNotFoundException {
     User user = TestUtil.generateMockUser();
     when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
-    assertThrows(ResourceNotFoundException.class, () -> reviewService.getUserReviews(user.getId()));
+
+    List<ReviewResponseDto> reviewRequestDtos = reviewService.getUserReviews(user.getId());
+
+    assertEquals(reviewRequestDtos.size(), 0);
+  }
+
+  @Test
+  public void getUserReviewsTest_BadRequest() throws BadRequestException, ResourceNotFoundException {
+    assertThrows(BadRequestException.class, () -> reviewService.getUserReviews(null));
   }
 }

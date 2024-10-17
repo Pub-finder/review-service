@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.ToIntFunction;
 
@@ -74,8 +75,10 @@ public class ReviewService {
     @Cacheable(value = "getPubRating")
     public RatingDto getPubRating(UUID id)
             throws BadRequestException, ResourceNotFoundException {
+        if (id == null) throw new BadRequestException();
 
-        List<Review> reviews = reviewRepository.findAllByPub(getPub(id));
+        Pub pub = pubRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pub with id: " +id+ " was not found"));
+        List<Review> reviews = reviewRepository.findAllByPub(pub);
 
         return RatingDto.builder()
                 .pubId(id)
@@ -91,26 +94,25 @@ public class ReviewService {
             throws BadRequestException {
         if (id == null) throw new BadRequestException();
 
-        try {
-            return reviewRepository.findAllByPub(getPub(id))
-                    .stream()
-                    .map(Mapper.INSTANCE::entityToDto)
-                    .toList();
-        } catch (ResourceNotFoundException e) {
-            return List.of();
-        }
+        Optional<Pub> pub = pubRepository.findById(id);
+        return pub.map(value -> reviewRepository.findAllByPub(value)
+                .stream()
+                .map(Mapper.INSTANCE::entityToDto)
+                .toList()).orElseGet(List::of);
+
     }
 
     @Cacheable(value = "getUserReviews")
     public List<ReviewResponseDto> getUserReviews(UUID id)
-            throws ResourceNotFoundException {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " was not found"));
+            throws ResourceNotFoundException, BadRequestException {
+        if (id == null) throw new BadRequestException();
 
-        return reviewRepository.findAllByReviewer(user)
+        Optional<User> user = userRepository.findById(id);
+        return user.map(value -> reviewRepository.findAllByReviewer(value)
                 .stream()
                 .map(Mapper.INSTANCE::entityToDto)
-                .toList();
+                .toList()).orElseGet(List::of);
+
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,12 +139,6 @@ public class ReviewService {
                 .reviewDate(LocalDateTime.now())
                 .build());
     }
-
-    private Pub getPub(UUID id) throws ResourceNotFoundException {
-        return pubRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Pub with id " + id + " was not found"));
-    }
-
 
     private int calculateAverageRating(List<Review> reviews, ToIntFunction<Review> extractor) {
         int[] ratings = reviews.stream()
