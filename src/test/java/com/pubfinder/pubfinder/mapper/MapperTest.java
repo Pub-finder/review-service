@@ -3,7 +3,8 @@ package com.pubfinder.pubfinder.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.pubfinder.pubfinder.dto.ReviewDto;
+import com.pubfinder.pubfinder.dto.ReviewRequestDto;
+import com.pubfinder.pubfinder.dto.ReviewResponseDto;
 import com.pubfinder.pubfinder.dto.VisitedDto;
 import com.pubfinder.pubfinder.models.Review;
 import com.pubfinder.pubfinder.models.Visited;
@@ -20,22 +21,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 })
 public class MapperTest {
 
-  @Test
-  public void mapReviewDtoToEntityTest() {
-    ReviewDto reviewDto = TestUtil.generateMockReviewDTO();
-    Review review = Mapper.INSTANCE.dtoToEntity(reviewDto);
-    checkReview(reviewDto, review);
-  }
 
   @Test
   public void mapReviewEntityToDtoTest() {
     Review review = TestUtil.generateMockReview(TestUtil.generateMockUser(), TestUtil.generateMockPub());
-    ReviewDto reviewDto = Mapper.INSTANCE.entityToDto(review);
-    checkReview(reviewDto, review);
-    assertEquals(reviewDto.getId(), review.getId());
-    assertEquals(reviewDto.getPubId(), review.getPub().getId());
-    assertEquals(reviewDto.getUserId(), review.getReviewer().getId());
-    assertEquals(reviewDto.getUsername(), review.getReviewer().getUsername());
+    ReviewResponseDto reviewResponseDto = Mapper.INSTANCE.entityToDto(review);
+    checkReview(reviewResponseDto, review);
+    assertEquals(reviewResponseDto.getId(), review.getId());
+    assertEquals(reviewResponseDto.getPubId(), review.getPub().getId());
+    assertEquals(reviewResponseDto.getUserId(), review.getReviewer().getId());
+    assertEquals(reviewResponseDto.getUsername(), review.getReviewer().getUsername());
   }
 
   @Test
@@ -48,7 +43,7 @@ public class MapperTest {
     assertEquals(visited.getVisitor().getId(), visitedDto.getVisitorId());
   }
 
-  private void checkReview(ReviewDto dto, Review entity) {
+  private void checkReview(ReviewResponseDto dto, Review entity) {
     assertEquals(dto.getReview(), entity.getReview());
     assertEquals(dto.getRating(), entity.getRating());
     assertEquals(dto.getToilets(), entity.getToilets());

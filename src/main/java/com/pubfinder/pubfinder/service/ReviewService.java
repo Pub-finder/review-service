@@ -4,13 +4,19 @@ import com.pubfinder.pubfinder.db.PubRepository;
 import com.pubfinder.pubfinder.db.ReviewRepository;
 import com.pubfinder.pubfinder.db.UserRepository;
 import com.pubfinder.pubfinder.dto.RatingDto;
-import com.pubfinder.pubfinder.dto.ReviewDto;
+import com.pubfinder.pubfinder.dto.ReviewRequestDto;
+import com.pubfinder.pubfinder.dto.ReviewResponseDto;
 import com.pubfinder.pubfinder.exception.ResourceNotFoundException;
-import com.pubfinder.pubfinder.exception.ReviewAlreadyExistsException;
 import com.pubfinder.pubfinder.mapper.Mapper;
 import com.pubfinder.pubfinder.models.Pub;
 import com.pubfinder.pubfinder.models.Review;
 import com.pubfinder.pubfinder.models.User;
+import com.pubfinder.pubfinder.models.enums.Volume;
+import org.apache.coyote.BadRequestException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -18,160 +24,141 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.ToIntFunction;
 
-import com.pubfinder.pubfinder.models.enums.Volume;
-import org.apache.coyote.BadRequestException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-
 /**
  * The type Review service.
  */
 @Service
 public class ReviewService {
 
-  @Autowired
-  private ReviewRepository reviewRepository;
+    @Autowired
+    private ReviewRepository reviewRepository;
 
-  @Autowired
-  private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-  @Autowired
-  private PubRepository pubRepository;
+    @Autowired
+    private PubRepository pubRepository;
 
-  /**
-   * Saves user review
-   *
-   * @param review   the review
-   * @param pubId    the pub id
-   * @param userId the user id
-   * @return the review dto
-   * @throws ResourceNotFoundException    the user or pub not found exception
-   * @throws ReviewAlreadyExistsException the review already exists exception
-   */
-  public ReviewDto save(Review review, UUID pubId, UUID userId)
-      throws ResourceNotFoundException, ReviewAlreadyExistsException, BadRequestException {
+    /**
+     * Saves user review
+     *
+     * @param review the review
+     * @return the review dto
+     */
+    public ReviewResponseDto save(ReviewRequestDto review) {
 
-    Optional<User> user = userRepository.findById(userId);
-    if (user.isEmpty()) {
-      // TODO: Make call to check if the user exist in the user db
-      // User u = User.builder().id(userId).username(fetch.username).build();
-      // User user = userRepository.save(u)
-      throw new ResourceNotFoundException("User: " + userId + " does not exist");
+        User user = userRepository.findById(review.getUserId())
+                .orElseGet(() -> userRepository.save(User.builder().id(review.getUserId()).username(review.getUsername()).build()));
+
+        Pub pub = pubRepository.findById(review.getPubId())
+                .orElseGet(() -> pubRepository.save(Pub.builder().id(review.getPubId()).build()));
+
+        Review savedReview = reviewRepository.findByPubAndReviewer(pub, user)
+                .map(existingReview -> updateOldReview(existingReview, review))
+                .orElseGet(() -> createNewReview(user, pub, review));
+
+        return Mapper.INSTANCE.entityToDto(savedReview);
     }
 
-    Optional<Pub> pub = pubRepository.findById(pubId);
-    if (pub.isEmpty()) {
-      // TODO: Make call to check if the pub exist in the pub db
-      // Pub u = User.builder().id(pubId).build();
-      // Pub pub = pubRepository.save(u)
-      throw new ResourceNotFoundException("Pub: " + pubId + " does not exist");
+    /**
+     * Delete review.
+     *
+     * @param id the id
+     * @throws ResourceNotFoundException the review not found exception
+     */
+    public void delete(UUID id) throws ResourceNotFoundException, BadRequestException {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Review: " + id + " not found."));
+        reviewRepository.delete(review);
     }
 
-    if (reviewRepository.findByPubAndReviewer(pub.get(), user.get()).isPresent()) {
-      throw new ReviewAlreadyExistsException(
-          "User: " + userId + " has already made a review on Pub: " + pubId);
+    @Cacheable(value = "getPubRating")
+    public RatingDto getPubRating(UUID id)
+            throws BadRequestException, ResourceNotFoundException {
+        if (id == null) throw new BadRequestException();
+
+        Pub pub = pubRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pub with id: " +id+ " was not found"));
+        List<Review> reviews = reviewRepository.findAllByPub(pub);
+
+        return RatingDto.builder()
+                .pubId(id)
+                .rating(calculateAverageRating(reviews, Review::getRating))
+                .toiletRating(calculateAverageRating(reviews, Review::getToilets))
+                .serviceRating(calculateAverageRating(reviews, Review::getService))
+                .volume(calculateAverageVolume(reviews))
+                .build();
     }
 
-    review.setReviewer(user.get());
-    review.setPub(pub.get());
-    review.setReviewDate(LocalDateTime.now());
+    @Cacheable(value = "getPubReviews")
+    public List<ReviewResponseDto> getPubReviews(UUID id)
+            throws BadRequestException {
+        if (id == null) throw new BadRequestException();
 
-    return Mapper.INSTANCE.entityToDto(reviewRepository.save(review));
-  }
+        Optional<Pub> pub = pubRepository.findById(id);
+        return pub.map(value -> reviewRepository.findAllByPub(value)
+                .stream()
+                .map(Mapper.INSTANCE::entityToDto)
+                .toList()).orElseGet(List::of);
 
-  /**
-   * Delete review.
-   *
-   * @param id the id
-   * @throws ResourceNotFoundException the review not found exception
-   */
-  public void delete(UUID id) throws ResourceNotFoundException, BadRequestException {
-    Review review = reviewRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Review: " + id + " not found."));
-    reviewRepository.delete(review);
-  }
+    }
 
-  /**
-   * Update review review dto.
-   *
-   * @param review the review
-   * @return the review dto
-   * @throws ResourceNotFoundException the review not found exception
-   */
-  public ReviewDto edit(Review review) throws ResourceNotFoundException {
-    Review foundReview = reviewRepository.findById(review.getId()).orElseThrow(
-        () -> new ResourceNotFoundException("Review: " + review.getId() + " not found."));
-    review.setReviewDate(LocalDateTime.now());
-    review.setPub(foundReview.getPub());
-    review.setReviewer(foundReview.getReviewer());
-    Review updatedReview = reviewRepository.save(review);
-    return Mapper.INSTANCE.entityToDto(updatedReview);
-  }
+    @Cacheable(value = "getUserReviews")
+    public List<ReviewResponseDto> getUserReviews(UUID id)
+            throws ResourceNotFoundException, BadRequestException {
+        if (id == null) throw new BadRequestException();
 
-  @Cacheable(value = "getPubRating")
-  public RatingDto getPubRating(UUID id)
-          throws BadRequestException, ResourceNotFoundException {
+        Optional<User> user = userRepository.findById(id);
+        return user.map(value -> reviewRepository.findAllByReviewer(value)
+                .stream()
+                .map(Mapper.INSTANCE::entityToDto)
+                .toList()).orElseGet(List::of);
 
-    List<Review> reviews = reviewRepository.findAllByPub(getPub(id));
+    }
 
-      return RatingDto.builder()
-        .pubId(id)
-        .rating(calculateAverageRating(reviews, Review::getRating))
-        .toiletRating(calculateAverageRating(reviews, Review::getToilets))
-        .serviceRating(calculateAverageRating(reviews, Review::getService))
-        .volume(calculateAverageVolume(reviews))
-      .build();
-  }
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  @Cacheable(value = "getPubReviews")
-  public List<ReviewDto> getPubReviews(UUID id)
-          throws ResourceNotFoundException {
-    return reviewRepository.findAllByPub(getPub(id))
-            .stream()
-            .map(Mapper.INSTANCE::entityToDto)
-            .toList();
-  }
+    private Review updateOldReview(Review existingReview, ReviewRequestDto reviewRequestDto) {
+        existingReview.setRating(reviewRequestDto.getRating());
+        existingReview.setService(reviewRequestDto.getService());
+        existingReview.setToilets(reviewRequestDto.getToilets());
+        existingReview.setReview(reviewRequestDto.getReview());
+        existingReview.setVolume(Volume.fromValue(reviewRequestDto.getVolume()));
+        existingReview.setReviewDate(LocalDateTime.now());
+        return reviewRepository.save(existingReview);
+    }
 
-  @Cacheable(value = "getUserReviews")
-  public List<ReviewDto> getUserReviews(UUID id)
-          throws ResourceNotFoundException {
-    User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " was not found"));
+    private Review createNewReview(User user, Pub pub, ReviewRequestDto reviewRequestDto) {
+        return reviewRepository.save(Review.builder()
+                .reviewer(user)
+                .pub(pub)
+                .rating(reviewRequestDto.getRating())
+                .service(reviewRequestDto.getService())
+                .toilets(reviewRequestDto.getToilets())
+                .review(reviewRequestDto.getReview())
+                .volume(Volume.fromValue((reviewRequestDto.getVolume())))
+                .reviewDate(LocalDateTime.now())
+                .build());
+    }
 
-    return reviewRepository.findAllByReviewer(user)
-            .stream()
-            .map(Mapper.INSTANCE::entityToDto)
-            .toList();
-  }
+    private int calculateAverageRating(List<Review> reviews, ToIntFunction<Review> extractor) {
+        int[] ratings = reviews.stream()
+                .mapToInt(extractor)
+                .filter(rating -> rating != 0)
+                .toArray();
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        return calculateAverage(Arrays.stream(ratings).sum(), ratings.length);
+    }
 
-  private Pub getPub(UUID id) throws ResourceNotFoundException {
-    return pubRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Pub with id " + id + " was not found"));
-  }
+    private Volume calculateAverageVolume(List<Review> reviews) {
+        int[] loudness = reviews.stream().filter(r -> r.getVolume() != null)
+                .mapToInt(r -> r.getVolume().getOrdinal()).toArray();
+        if (loudness.length == 0) return null;
 
+        int value = calculateAverage(Arrays.stream(loudness).sum(), loudness.length);
+        return Volume.values()[value];
+    }
 
-  private int calculateAverageRating(List<Review> reviews, ToIntFunction<Review> extractor) {
-    int[] ratings = reviews.stream()
-            .mapToInt(extractor)
-            .filter(rating -> rating != 0)
-            .toArray();
-
-    return calculateAverage(Arrays.stream(ratings).sum(), ratings.length);
-  }
-
-  private Volume calculateAverageVolume(List<Review> reviews) {
-    int[] loudness = reviews.stream().filter(r -> r.getVolume() != null)
-            .mapToInt(r -> r.getVolume().getOrdinal()).toArray();
-    if (loudness.length == 0) return null;
-
-    int value = calculateAverage(Arrays.stream(loudness).sum(), loudness.length);
-    return Volume.values()[value];
-  }
-
-  private int calculateAverage(int sum, int length) {
-    return (int) Math.round((double) sum / length);
-  }
+    private int calculateAverage(int sum, int length) {
+        return (int) Math.round((double) sum / length);
+    }
 }

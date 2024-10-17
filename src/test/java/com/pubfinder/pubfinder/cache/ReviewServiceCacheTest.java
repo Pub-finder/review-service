@@ -7,7 +7,8 @@ import static org.mockito.Mockito.times;
 import com.pubfinder.pubfinder.db.PubRepository;
 import com.pubfinder.pubfinder.db.ReviewRepository;
 import com.pubfinder.pubfinder.dto.RatingDto;
-import com.pubfinder.pubfinder.dto.ReviewDto;
+import com.pubfinder.pubfinder.dto.ReviewRequestDto;
+import com.pubfinder.pubfinder.dto.ReviewResponseDto;
 import com.pubfinder.pubfinder.exception.ResourceNotFoundException;
 import com.pubfinder.pubfinder.models.Pub;
 import com.pubfinder.pubfinder.service.ReviewService;
@@ -60,8 +61,8 @@ public class ReviewServiceCacheTest {
     when(pubRepository.findById(pub.getId())).thenReturn(Optional.of(pub));
     when(reviewRepository.findAllByPub(pub)).thenReturn(TestUtil.generateListOfMockReviews(pub));
 
-    List<ReviewDto> response1 = reviewService.getPubReviews(pub.getId());
-    List<ReviewDto> response2 = reviewService.getPubReviews(pub.getId());
+    List<ReviewResponseDto> response1 = reviewService.getPubReviews(pub.getId());
+    List<ReviewResponseDto> response2 = reviewService.getPubReviews(pub.getId());
 
     assertEquals(response1, response2);
     verify(reviewRepository, times(1)).findAllByPub(pub);
