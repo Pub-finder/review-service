@@ -114,7 +114,7 @@ public class ReviewService {
         existingReview.setService(reviewRequestDto.getService());
         existingReview.setToilets(reviewRequestDto.getToilets());
         existingReview.setReview(reviewRequestDto.getReview());
-        existingReview.setVolume(setVolume(reviewRequestDto.getVolume()));
+        existingReview.setVolume(Volume.fromValue(reviewRequestDto.getVolume()));
         existingReview.setReviewDate(LocalDateTime.now());
         return reviewRepository.save(existingReview);
     }
@@ -127,7 +127,7 @@ public class ReviewService {
                 .service(reviewRequestDto.getService())
                 .toilets(reviewRequestDto.getToilets())
                 .review(reviewRequestDto.getReview())
-                .volume(setVolume(reviewRequestDto.getVolume()))
+                .volume(Volume.fromValue((reviewRequestDto.getVolume())))
                 .reviewDate(LocalDateTime.now())
                 .build());
     }
@@ -158,19 +158,5 @@ public class ReviewService {
 
     private int calculateAverage(int sum, int length) {
         return (int) Math.round((double) sum / length);
-    }
-
-    private Volume setVolume(int volume) {
-        if (0 <= volume && volume <= 20) {
-            return Volume.QUITE;
-        } else if (20 < volume && volume <= 40) {
-            return Volume.PLEASANT;
-        } else if (40 < volume && volume <= 60) {
-            return Volume.AVERAGE;
-        } else if (60 < volume && volume <= 80) {
-            return Volume.LOUD;
-        } else {
-            return Volume.VERY_LOUD;
-        }
     }
 }
