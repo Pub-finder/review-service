@@ -88,11 +88,17 @@ public class ReviewService {
 
     @Cacheable(value = "getPubReviews")
     public List<ReviewResponseDto> getPubReviews(UUID id)
-            throws ResourceNotFoundException {
-        return reviewRepository.findAllByPub(getPub(id))
-                .stream()
-                .map(Mapper.INSTANCE::entityToDto)
-                .toList();
+            throws BadRequestException {
+        if (id == null) throw new BadRequestException();
+
+        try {
+            return reviewRepository.findAllByPub(getPub(id))
+                    .stream()
+                    .map(Mapper.INSTANCE::entityToDto)
+                    .toList();
+        } catch (ResourceNotFoundException e) {
+            return List.of();
+        }
     }
 
     @Cacheable(value = "getUserReviews")

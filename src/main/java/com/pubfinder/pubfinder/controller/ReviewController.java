@@ -45,7 +45,7 @@ public class ReviewController {
     }
 
     @GetMapping("/reviews/pub/{id}")
-    public ResponseEntity<List<ReviewResponseDto>> getPubReviews(@PathVariable("id") UUID id) throws ResourceNotFoundException {
+    public ResponseEntity<List<ReviewResponseDto>> getPubReviews(@PathVariable("id") UUID id) throws ResourceNotFoundException, BadRequestException {
         return ResponseEntity.ok(reviewService.getPubReviews(id));
     }
 

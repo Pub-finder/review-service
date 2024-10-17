@@ -23,6 +23,6 @@ public class ReviewRequestDto implements Serializable {
   private String review;
   private int rating;
   private int toilets;
-  private int volume;
+  private Integer volume;
   private int service;
 }

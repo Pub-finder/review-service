@@ -136,7 +136,7 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void getPubReviewsTest() throws ResourceNotFoundException {
+  public void getPubReviewsTest() throws BadRequestException {
     Pub pub = TestUtil.generateMockPub();
 
     List<Review> reviews = generateListOfMockReviews();
