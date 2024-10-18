@@ -30,8 +30,9 @@ spring:
       - getPubReviews
       - getUserReviews
       - getVisitedPubs
-    caffeine:
-      spec: maximumSize=100000,expireAfterAccess=3600s
+  caffeine:
+    spec: maximumSize=100000,refreshAfterWrite=1800s,expireAfterAccess=7200s
+
 
 server:
   port: 8083
