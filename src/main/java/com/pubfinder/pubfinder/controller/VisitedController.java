@@ -7,6 +7,8 @@ import com.pubfinder.pubfinder.service.VisitedService;
 
 import java.util.List;
 import java.util.UUID;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +35,7 @@ public class VisitedController {
 
   @GetMapping("/visits/{id}")
   public ResponseEntity<List<VisitedDto>> getVisits(@PathVariable("id") UUID id)
-          throws ResourceNotFoundException {
+          throws BadRequestException {
     return ResponseEntity.ok(visitedService.getVisitedPubs(id));
   }
 }

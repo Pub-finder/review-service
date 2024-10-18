@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -81,13 +83,13 @@ public class VisitedService {
   }
 
   @Cacheable(value = "getVisitedPubs")
-  public List<VisitedDto> getVisitedPubs(UUID id) throws ResourceNotFoundException {
-    User user = userRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " was not found"));
+  public List<VisitedDto> getVisitedPubs(UUID id) throws BadRequestException {
+    if (id == null) throw new BadRequestException();
 
-    return visitedRepository.findAllByVisitor(user)
+    Optional<User> user = userRepository.findById(id);
+    return user.map(value -> visitedRepository.findAllByVisitor(value)
             .stream()
-            .map(Mapper.INSTANCE::entityToDto)
-            .toList();
+            .map(Mapper.INSTANCE::entityToDto).toList())
+            .orElseGet(List::of);
   }
 }

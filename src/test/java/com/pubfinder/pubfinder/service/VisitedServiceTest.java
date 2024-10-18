@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.apache.coyote.BadRequestException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -134,7 +135,7 @@ public class VisitedServiceTest {
   }
 
   @Test
-  public void getVisitedPubsTest() throws ResourceNotFoundException {
+  public void getVisitedPubsTest() throws BadRequestException {
     User user = TestUtil.generateMockUser();
     List<Visited> visits = TestUtil.generateListOfMockVisits(user);
 
@@ -147,9 +148,11 @@ public class VisitedServiceTest {
   }
 
   @Test
-  public void getVisitedPubsTest_NotFound() {
+  public void getVisitedPubsTest_NotFound() throws BadRequestException {
     User user = TestUtil.generateMockUser();
     when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
-    assertThrows(ResourceNotFoundException.class, () -> visitedService.getVisitedPubs(user.getId()));
+    List<VisitedDto> visitedPubs = visitedService.getVisitedPubs(user.getId());
+
+    assertEquals(visitedPubs.size(), 0);
   }
 }
