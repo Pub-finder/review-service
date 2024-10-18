@@ -10,6 +10,7 @@ import com.pubfinder.pubfinder.models.Pub;
 import com.pubfinder.pubfinder.models.User;
 import com.pubfinder.pubfinder.service.VisitedService;
 import com.pubfinder.pubfinder.util.TestUtil;
+import org.apache.coyote.BadRequestException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,7 +42,7 @@ public class VisitedServiceCacheTest {
 
     @Test
     public void getVisitedPubsTest_CacheHit()
-            throws ResourceNotFoundException {
+            throws BadRequestException {
         User user = TestUtil.generateMockUser();
 
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
@@ -56,7 +57,7 @@ public class VisitedServiceCacheTest {
 
     @Test
     public void getVisitedPubsTest_CacheMiss_SavedVisit()
-            throws ResourceNotFoundException {
+            throws BadRequestException {
         User user = TestUtil.generateMockUser();
         Pub pub = TestUtil.generateMockPub();
 
@@ -72,7 +73,7 @@ public class VisitedServiceCacheTest {
 
     @Test
     public void getVisitedPubsTest_CacheMiss_DeleteVisit()
-            throws ResourceNotFoundException {
+            throws ResourceNotFoundException, BadRequestException {
         User user = TestUtil.generateMockUser();
         Pub pub = TestUtil.generateMockPub();
 

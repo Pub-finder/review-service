@@ -86,7 +86,13 @@ public class ReviewService {
         Pub pub = pubRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Pub with id: " + id + " was not found"));
         List<Review> reviews = reviewRepository.findAllByPub(pub);
 
-        return RatingDto.builder().pubId(id).rating(calculateAverageRating(reviews, Review::getRating)).toiletRating(calculateAverageRating(reviews, Review::getToilets)).serviceRating(calculateAverageRating(reviews, Review::getService)).volume(calculateAverageVolume(reviews)).build();
+        return RatingDto.builder()
+                .pubId(id)
+                .rating(calculateAverageRating(reviews, Review::getRating))
+                .toiletRating(calculateAverageRating(reviews, Review::getToilets))
+                .serviceRating(calculateAverageRating(reviews, Review::getService))
+                .volume(calculateAverageVolume(reviews))
+                .build();
     }
 
     @Cacheable(value = "getPubReviews")
@@ -94,7 +100,10 @@ public class ReviewService {
         if (id == null) throw new BadRequestException();
 
         Optional<Pub> pub = pubRepository.findById(id);
-        return pub.map(value -> reviewRepository.findAllByPub(value).stream().map(Mapper.INSTANCE::entityToDto).toList()).orElseGet(List::of);
+        return pub.map(value -> reviewRepository.findAllByPub(value)
+                .stream()
+                .map(Mapper.INSTANCE::entityToDto).toList())
+                .orElseGet(List::of);
 
     }
 
@@ -103,7 +112,10 @@ public class ReviewService {
         if (id == null) throw new BadRequestException();
 
         Optional<User> user = userRepository.findById(id);
-        return user.map(value -> reviewRepository.findAllByReviewer(value).stream().map(Mapper.INSTANCE::entityToDto).toList()).orElseGet(List::of);
+        return user.map(value -> reviewRepository.findAllByReviewer(value)
+                .stream()
+                .map(Mapper.INSTANCE::entityToDto).toList())
+                .orElseGet(List::of);
 
     }
 

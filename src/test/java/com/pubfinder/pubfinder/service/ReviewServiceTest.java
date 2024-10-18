@@ -160,7 +160,7 @@ public class ReviewServiceTest {
   }
 
   @Test
-  public void etPubReviewsTest_BadRequest() throws BadRequestException, ResourceNotFoundException {
+  public void getPubReviewsTest_BadRequest() throws BadRequestException, ResourceNotFoundException {
     assertThrows(BadRequestException.class, () -> reviewService.getPubReviews(null));
   }
 
