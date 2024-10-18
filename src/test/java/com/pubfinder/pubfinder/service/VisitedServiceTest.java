@@ -49,7 +49,7 @@ public class VisitedServiceTest {
   private PubRepository pubRepository;
 
   @Test
-  public void saveTest() throws ResourceNotFoundException {
+  public void saveTest() {
     User user = TestUtil.generateMockUser();
     Pub pub = TestUtil.generateMockPub();
     Visited visited = TestUtil.generateMockVisited(user);
@@ -154,5 +154,10 @@ public class VisitedServiceTest {
     List<VisitedDto> visitedPubs = visitedService.getVisitedPubs(user.getId());
 
     assertEquals(visitedPubs.size(), 0);
+  }
+
+  @Test
+  public void getVisitedPubsTest_BadRequest() {
+    assertThrows(BadRequestException.class, () -> visitedService.getVisitedPubs(null));
   }
 }
