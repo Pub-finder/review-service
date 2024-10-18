@@ -1,6 +1,5 @@
 package com.pubfinder.pubfinder.mapper;
 
-import com.pubfinder.pubfinder.dto.ReviewRequestDto;
 import com.pubfinder.pubfinder.dto.ReviewResponseDto;
 import com.pubfinder.pubfinder.dto.VisitedDto;
 import com.pubfinder.pubfinder.models.Review;

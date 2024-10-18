@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +39,7 @@ public class VisitedService {
    *
    * @param visit    the visit containg the visitors userId and username and the pubs Id
    */
+  @CacheEvict(value = "getVisitedPubs", key = "#visit.userId")
   public void save(VisitDto visit) {
     User user = userRepository.findById(visit.getUserId())
             .orElseGet(() -> userRepository.save(User.builder().id(visit.getUserId()).username(visit.getUsername()).build()));
@@ -64,6 +66,7 @@ public class VisitedService {
    * @param pubId the pubs id
    * @throws ResourceNotFoundException the resource not found exception
    */
+  @CacheEvict(value = "getVisitedPubs", key = "#userId")
   public void delete(UUID userId, UUID pubId) throws ResourceNotFoundException {
     Pub pub = pubRepository.findById(pubId)
             .orElseThrow(() -> new ResourceNotFoundException("Pub with id " + pubId + " was not found"));

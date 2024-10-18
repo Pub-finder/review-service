@@ -1,18 +1,15 @@
 package com.pubfinder.pubfinder.cache;
 
 import com.pubfinder.pubfinder.db.PubRepository;
-import com.pubfinder.pubfinder.db.ReviewRepository;
 import com.pubfinder.pubfinder.db.UserRepository;
 import com.pubfinder.pubfinder.db.VisitedRepository;
-import com.pubfinder.pubfinder.dto.RatingDto;
+import com.pubfinder.pubfinder.dto.VisitDto;
 import com.pubfinder.pubfinder.dto.VisitedDto;
 import com.pubfinder.pubfinder.exception.ResourceNotFoundException;
 import com.pubfinder.pubfinder.models.Pub;
 import com.pubfinder.pubfinder.models.User;
-import com.pubfinder.pubfinder.service.ReviewService;
 import com.pubfinder.pubfinder.service.VisitedService;
 import com.pubfinder.pubfinder.util.TestUtil;
-import org.apache.coyote.BadRequestException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,6 +33,8 @@ public class VisitedServiceCacheTest {
     @MockBean
     private VisitedRepository visitedRepository;
     @MockBean
+    private PubRepository pubRepository;
+    @MockBean
     private UserRepository userRepository;
     @Autowired
     private CacheManager cacheManager;
@@ -53,5 +52,55 @@ public class VisitedServiceCacheTest {
 
         assertEquals(response1, response2);
         verify(visitedRepository, times(1)).findAllByVisitor(user);
+    }
+
+    @Test
+    public void getVisitedPubsTest_CacheMiss_SavedVisit()
+            throws ResourceNotFoundException {
+        User user = TestUtil.generateMockUser();
+        Pub pub = TestUtil.generateMockPub();
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(visitedRepository.findAllByVisitor(user)).thenReturn(TestUtil.generateListOfMockVisits(user));
+
+        visitedService.getVisitedPubs(user.getId());
+        mockSaveVisit(user, pub);
+        visitedService.getVisitedPubs(user.getId());
+
+        verify(visitedRepository, times(2)).findAllByVisitor(user);
+    }
+
+    @Test
+    public void getVisitedPubsTest_CacheMiss_DeleteVisit()
+            throws ResourceNotFoundException {
+        User user = TestUtil.generateMockUser();
+        Pub pub = TestUtil.generateMockPub();
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(visitedRepository.findAllByVisitor(user)).thenReturn(TestUtil.generateListOfMockVisits(user));
+
+        visitedService.getVisitedPubs(user.getId());
+        mockDeleteVisit(user, pub);
+        visitedService.getVisitedPubs(user.getId());
+
+        verify(visitedRepository, times(2)).findAllByVisitor(user);
+    }
+
+    private void mockSaveVisit(User user, Pub pub) {
+        VisitDto visitDto = TestUtil.generateVisitDto();
+        visitDto.setPubId(pub.getId());
+        visitDto.setUserId(user.getId());
+
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(pubRepository.findById(pub.getId())).thenReturn(Optional.of(pub));
+        when(visitedRepository.findByPubAndVisitor(pub, user)).thenReturn(Optional.ofNullable(TestUtil.generateMockVisited(user)));
+        visitedService.save(visitDto);
+    }
+
+    private void mockDeleteVisit(User user, Pub pub) throws ResourceNotFoundException {
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(pubRepository.findById(pub.getId())).thenReturn(Optional.of(pub));
+        when(visitedRepository.findByPubAndVisitor(pub, user)).thenReturn(Optional.ofNullable(TestUtil.generateMockVisited(user)));
+        visitedService.delete(user.getId(), pub.getId());
     }
 }
