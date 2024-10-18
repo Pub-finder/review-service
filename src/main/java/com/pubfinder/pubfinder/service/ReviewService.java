@@ -49,15 +49,16 @@ public class ReviewService {
      * @param review the review
      * @return the review dto
      */
-    @Caching(evict = {@CacheEvict(value = "getPubRating", key = "#review.pubId"), @CacheEvict(value = "getPubReviews", key = "#review.pubId"), @CacheEvict(value = "getUserReviews", key = "#review.userId")})
+    @Caching(evict = {
+            @CacheEvict(value = "getPubRating", key = "#review.pubId"),
+            @CacheEvict(value = "getPubReviews", key = "#review.pubId"),
+            @CacheEvict(value = "getUserReviews", key = "#review.userId")
+    })
     public ReviewResponseDto save(ReviewRequestDto review) {
-
         User user = userRepository.findById(review.getUserId()).orElseGet(() -> userRepository.save(User.builder().id(review.getUserId()).username(review.getUsername()).build()));
-
         Pub pub = pubRepository.findById(review.getPubId()).orElseGet(() -> pubRepository.save(Pub.builder().id(review.getPubId()).build()));
 
         Review savedReview = reviewRepository.findByPubAndReviewer(pub, user).map(existingReview -> updateOldReview(existingReview, review)).orElseGet(() -> createNewReview(user, pub, review));
-
         return Mapper.INSTANCE.entityToDto(savedReview);
     }
 
